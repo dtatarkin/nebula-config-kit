@@ -1,0 +1,116 @@
+[project]
+name = "nebula-config-kit"
+version = "0.0.1"
+description = "Define your Nebula mesh network once, generate validated configs for every host"
+readme = "README.md"
+authors = [
+    { name = "Dmitry Tatarkin", email = "tatarkin@gmail.com" }
+]
+license = "MIT"
+requires-python = ">=3.12"
+keywords = [
+    "nebula",
+    "vpn",
+    "mesh-network",
+    "overlay-network",
+    "network-automation",
+    "configuration-management",
+    "infrastructure",
+    "pki",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Security",
+    "Typing :: Typed",
+    "Environment :: Console",
+    "Framework :: Pydantic :: 2",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "pki-kit>=0.0.2",
+    "pydantic>=2.0",
+    "ruamel-yaml>=0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/dtatarkin/nebula-config-kit"
+Repository = "https://github.com/dtatarkin/nebula-config-kit"
+Issues = "https://github.com/dtatarkin/nebula-config-kit/issues"
+Changelog = "https://github.com/dtatarkin/nebula-config-kit/releases"
+
+[tool.uv.sources]
+#pki-kit = { path = "lib/pki-kit", editable = true }
+
+[project.optional-dependencies]
+cli = ["typer>=0.15", "rich>=13.0"]
+
+[project.scripts]
+nebula-config = "nebula_config_kit.cli:main"
+[dependency-groups]
+dev = [
+    "codespell",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "python-dotenv[cli]",
+    "ruff",
+    "ty>=0.0.24",
+]
+
+[tool.uv.build-backend]
+module-name = "nebula_config_kit"
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "N", "UP", "B", "A", "C4", "DTZ", "T20", "SIM", "TCH", "RUF", "PT", "S", "ANN"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["ANN", "S101"]
+"src/nebula_config_kit/cli/**/*.py" = ["T20", "TCH"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nebula_config_kit"]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = "nebula_config_kit.cli.*"
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = "ruamel.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ty.rules]
+unused-type-ignore-comment = "ignore"
+unresolved-import = "ignore"
+
+[tool.codespell]
+skip = ".git,uv.lock,dist"

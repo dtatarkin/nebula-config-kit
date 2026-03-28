@@ -1,0 +1,4 @@
+[submodule "lib/pki-kit"]
+	path = lib/pki-kit
+	url = https://github.com/dtatarkin/pki-kit.git
+	branch = master

@@ -12,8 +12,6 @@ dist/
 # PyCharm
 .idea
 
-# Claude Code
-.claude
 
 # Environment files
 *.env

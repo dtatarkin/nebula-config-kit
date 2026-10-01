@@ -1,0 +1,4 @@
+[files]
+# Neither is text anyone wrote here: a hash that spells a word is not a typo,
+# and a vendored repository's spelling is its own repository's business.
+extend-exclude = ["uv.lock", "lib/pki-kit/"]

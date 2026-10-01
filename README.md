@@ -2,16 +2,20 @@
 
 **Stop hand-crafting Nebula configs. Define your mesh network once, generate configs for every host.**
 
-nebula-config-kit is a Python library and CLI for managing [Nebula](https://github.com/slackhq/nebula) overlay network configurations. It takes a single declarative YAML file describing your entire network — hosts, lighthouses, relays, firewall rules — and generates validated, ready-to-deploy Nebula configs for each node.
+nebula-config-kit is a Python library and CLI for managing [Nebula](https://github.com/slackhq/nebula) overlay network
+configurations. It takes a single declarative YAML file describing your entire network — hosts, lighthouses, relays,
+firewall rules — and generates validated, ready-to-deploy Nebula configs for each node.
 
 ---
 
 ## Why?
 
-Managing a Nebula mesh network means juggling per-host YAML files that share 90% of their content but differ in subtle, error-prone ways. nebula-config-kit solves this:
+Managing a Nebula mesh network means juggling per-host YAML files that share 90% of their content but differ in subtle,
+error-prone ways. nebula-config-kit solves this:
 
 - **Single source of truth** — one config file defines your entire network topology
-- **Type-safe validation** — Pydantic models catch misconfigurations before deployment (duplicate IPs, missing lighthouses, invalid rules)
+- **Type-safe validation** — Pydantic models catch misconfigurations before deployment (duplicate IPs, missing
+  lighthouses, invalid rules)
 - **Automatic resolution** — lighthouse maps, relay lists, and firewall rules are computed per-host from your network definition
 - **PKI integration** — built-in certificate management via pki-kit (CA creation, host cert signing, revocation)
 - **Comment-preserving templates** — generated configs retain the original Nebula YAML comments for readability
@@ -105,11 +109,14 @@ host = resolve_host(name=HostName("webserver"), config=config)
 
 ### Host resolution
 
-Hosts inherit from `defaults` and can override any setting. Lighthouses are auto-detected from hosts with `public_endpoints`. Relays are identified by the `am_relay` flag. Each host gets a resolved config with the correct static host map, lighthouse list, and relay list — excluding itself.
+Hosts inherit from `defaults` and can override any setting. Lighthouses are auto-detected from hosts with
+`public_endpoints`. Relays are identified by the `am_relay` flag. Each host gets a resolved config with the correct
+static host map, lighthouse list, and relay list — excluding itself.
 
 ### Security groups & firewall
 
-Define reusable security groups, assign them to hosts or host groups, and nebula-config-kit resolves the full inbound/outbound firewall ruleset per host. Default rules apply to all hosts unless overridden.
+Define reusable security groups, assign them to hosts or host groups, and nebula-config-kit resolves the full
+inbound/outbound firewall ruleset per host. Default rules apply to all hosts unless overridden.
 
 ### PKI management
 
@@ -167,4 +174,4 @@ just check
 
 ## License
 
-See [LICENSE](LICENSE) for details.
+Released under the MIT license.

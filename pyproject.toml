@@ -3,40 +3,34 @@ name = "nebula-config-kit"
 version = "0.0.1"
 description = "Define your Nebula mesh network once, generate validated configs for every host"
 readme = "README.md"
-authors = [
-    { name = "Dmitry Tatarkin", email = "tatarkin@gmail.com" }
-]
+authors = [{ name = "Dmitry Tatarkin", email = "tatarkin@gmail.com" }]
 license = "MIT"
 requires-python = ">=3.12"
 keywords = [
-    "nebula",
-    "vpn",
-    "mesh-network",
-    "overlay-network",
-    "network-automation",
-    "configuration-management",
-    "infrastructure",
-    "pki",
+  "nebula",
+  "vpn",
+  "mesh-network",
+  "overlay-network",
+  "network-automation",
+  "configuration-management",
+  "infrastructure",
+  "pki",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: System Administrators",
-    "Intended Audience :: Developers",
-    "Topic :: System :: Networking",
-    "Topic :: System :: Systems Administration",
-    "Topic :: Security",
-    "Typing :: Typed",
-    "Environment :: Console",
-    "Framework :: Pydantic :: 2",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: System Administrators",
+  "Intended Audience :: Developers",
+  "Topic :: System :: Networking",
+  "Topic :: System :: Systems Administration",
+  "Topic :: Security",
+  "Typing :: Typed",
+  "Environment :: Console",
+  "Framework :: Pydantic :: 2",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
-dependencies = [
-    "pki-kit>=0.0.2",
-    "pydantic>=2.0",
-    "ruamel-yaml>=0.18",
-]
+dependencies = ["pki-kit>=0.0.2", "pydantic>=2.0", "ruamel-yaml>=0.18"]
 
 [project.urls]
 Homepage = "https://github.com/dtatarkin/nebula-config-kit"
@@ -54,13 +48,18 @@ cli = ["typer>=0.15", "rich>=13.0"]
 nebula-config = "nebula_config_kit.cli:main"
 [dependency-groups]
 dev = [
-    "codespell",
-    "mypy",
-    "pre-commit",
-    "pytest",
-    "python-dotenv[cli]",
-    "ruff",
-    "ty>=0.0.24",
+  "mypy",
+  # The type checkers run through this lockfile, so the environment they see
+  # has to hold what the CLI imports: the extra, by self-reference.
+  "nebula-config-kit[cli]",
+  "pre-commit",
+  "pytest",
+  "python-dotenv[cli]",
+  "ruff",
+  # The justfile formatter the commit hook runs. Pinned here rather than in
+  # the hook entry, so the lockfile is where its version is visible.
+  "rust-just",
+  "ty>=0.0.24",
 ]
 
 [tool.uv.build-backend]
@@ -76,7 +75,29 @@ line-length = 120
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["F", "E", "W", "I", "N", "UP", "B", "A", "C4", "DTZ", "T20", "SIM", "TCH", "RUF", "PT", "S", "ANN"]
+select = [
+  "F",
+  "E",
+  "W",
+  "I",
+  "N",
+  "UP",
+  "B",
+  "A",
+  "C4",
+  "DTZ",
+  "T20",
+  "SIM",
+  "TCH",
+  "RUF",
+  "PT",
+  "S",
+  "ANN",
+]
+# Calling a subprocess, and calling one by name rather than by absolute path:
+# tools are resolved by name here as a standing contract, so these two would
+# fire on correct code every time.
+ignore = ["S603", "S607"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["ANN", "S101"]
@@ -92,6 +113,8 @@ runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
+# Names what is checked, so a vendored repository under lib/ never joins the run.
+files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
@@ -111,6 +134,3 @@ testpaths = ["tests"]
 [tool.ty.rules]
 unused-type-ignore-comment = "ignore"
 unresolved-import = "ignore"
-
-[tool.codespell]
-skip = ".git,uv.lock,dist"

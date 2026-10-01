@@ -1,0 +1,23 @@
+# `document-start` is off because hook configurations and templates carry no
+# leading marker; 120 is the width the markdown and Python rules use too.
+#
+# The built-in template is upstream Nebula's example configuration, and the
+# generator writes its comments verbatim into every host config it renders. Its
+# long lines and its `#key: value` commented-out settings are therefore
+# upstream's text and this tool's output, not prose written here: re-shaping
+# them would change what the tool emits. The three comment-shape rules skip that
+# one file; every other rule still reads it.
+extends: default
+
+rules:
+  document-start: disable
+  line-length:
+    max: 120
+    ignore:
+      - src/nebula_config_kit/nebula.config.template.yml
+  comments:
+    ignore:
+      - src/nebula_config_kit/nebula.config.template.yml
+  comments-indentation:
+    ignore:
+      - src/nebula_config_kit/nebula.config.template.yml

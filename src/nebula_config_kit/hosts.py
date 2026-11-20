@@ -17,6 +17,7 @@ def resolve_host_overrides(name: HostName, *, hosts_config: HostsConfig) -> Host
         tun_dev=per_host.tun_dev if per_host.tun_dev is not None else defaults.tun_dev,
         listen_port=per_host.listen_port if per_host.listen_port is not None else defaults.listen_port,
         relays=per_host.relays if per_host.relays is not None else defaults.relays,
+        key_path=per_host.key_path if per_host.key_path is not None else defaults.key_path,
     )
 
 

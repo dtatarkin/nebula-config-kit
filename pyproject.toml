@@ -44,7 +44,7 @@ Changelog = "https://github.com/dtatarkin/nebula-config-kit/releases"
 exclude-newer = "7 days"
 
 [tool.uv.sources]
-#pki-kit = { path = "lib/pki-kit", editable = true }
+pki-kit = { path = "lib/pki-kit", editable = true }
 
 [project.optional-dependencies]
 cli = ["typer>=0.15", "rich>=13.0"]

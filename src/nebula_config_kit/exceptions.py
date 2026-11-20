@@ -40,6 +40,14 @@ class LighthouseConfigError(NebulaConfigError):
         super().__init__(f"Lighthouse '{name}': {message}")
 
 
+class HostCertificateNotFoundError(NebulaConfigError):
+    """No stored certificate fits the host as the network config defines it."""
+
+    def __init__(self, *, name: HostName, message: str) -> None:
+        self.name = name
+        super().__init__(f"Host '{name}': {message}")
+
+
 class ConfigRenderError(NebulaConfigError):
     """Configuration rendering failed."""
 

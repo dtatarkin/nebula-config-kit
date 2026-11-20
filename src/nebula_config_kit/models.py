@@ -44,6 +44,10 @@ class CertsConfig(BaseModel):
     ca_min_validity: Duration = timedelta(days=365)
     host_duration: Duration = timedelta(days=365)
     host_min_validity: Duration = timedelta(days=30)
+    # Serial numbers of the CAs every host trusts; `pki.ca` carries all of them, so a
+    # host signed by any one is accepted. Listing two is how a CA is replaced without
+    # an outage. When set, generation selects existing certificates and issues none.
+    trusted_ca_serials: list[int] | None = None
 
 
 class SecurityGroup(BaseModel):
@@ -87,6 +91,10 @@ class HostDefaults(BaseModel):
     tun_dev: str | None = None
     listen_port: int | None = None
     relays: list[str] | None = None
+    # Where the host keeps its own private key; the generated config points there
+    # instead of carrying the key. `{name}` is replaced by the host name and `~` is
+    # expanded when the config is generated.
+    key_path: str | None = None
 
 
 class HostConfig(BaseModel):
@@ -98,6 +106,7 @@ class HostConfig(BaseModel):
     listen_port: int | None = None
     am_relay: bool = False
     relays: list[str] | None = None
+    key_path: str | None = None
 
 
 class HostsConfig(BaseModel):

@@ -363,7 +363,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pki-kit", specifier = ">=0.0.2" },
+    { name = "pki-kit", editable = "lib/pki-kit" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "rich", marker = "extra == 'cli'", specifier = ">=13.0" },
     { name = "ruamel-yaml", specifier = ">=0.18" },
@@ -413,16 +413,35 @@ wheels = [
 [[package]]
 name = "pki-kit"
 version = "0.0.2"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "lib/pki-kit" }
 dependencies = [
     { name = "cryptography" },
     { name = "pydantic" },
     { name = "python-ulid" },
     { name = "ruamel-yaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/78/57/44f13bb0d494d4b1a1e6eedfda29f9b6b4000b86e4aecf7cf23b1870ddd5/pki_kit-0.0.2.tar.gz", hash = "sha256:b20c167ff0fdaf6d9795a7576c688ebcdba177449797118131a7d1d435abfa4c", size = 20659, upload-time = "2026-03-28T11:32:51.067Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/61/3087cdbea352b5cbb4528a1595f3a2a120fcd63f43aa6a6a11fe305053c7/pki_kit-0.0.2-py3-none-any.whl", hash = "sha256:5cb32cd43b5e29eec880b45842dc198e3b40e27d79f6157ef70cc047d098126b", size = 33318, upload-time = "2026-03-28T11:32:49.289Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "cryptography", specifier = ">=43.0" },
+    { name = "pydantic", specifier = ">=2.0" },
+    { name = "python-ulid", specifier = ">=3.0" },
+    { name = "rich", marker = "extra == 'cli'", specifier = ">=13.0" },
+    { name = "ruamel-yaml", specifier = ">=0.18" },
+    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.15" },
+]
+provides-extras = ["cli"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pki-kit", extras = ["cli"] },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "python-dotenv" },
+    { name = "ruff" },
+    { name = "rust-just" },
+    { name = "ty" },
 ]
 
 [[package]]

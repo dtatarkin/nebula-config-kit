@@ -8,6 +8,7 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.compat import StringIO
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, LiteralScalarString
 
+from nebula_config_kit.exceptions import ConfigRenderError
 from nebula_config_kit.models import LighthouseInfo
 from nebula_config_kit.types import FirewallRule
 
@@ -54,9 +55,10 @@ def _apply_pki(
     *,
     ca_cert_pem: str,
     host_cert_pem: str,
-    host_key_pem: str,
+    host_key_pem: str | None,
+    host_key_path: str | None,
     blocklist: list[str],
-    ca_cert_info: dict[str, object] | None,
+    ca_cert_infos: list[dict[str, object]],
     host_cert_info: dict[str, object] | None,
 ) -> None:
     """Override PKI certificate data and add cert info comments."""
@@ -66,10 +68,17 @@ def _apply_pki(
 
     pki["ca"] = LiteralScalarString(ca_cert_pem.strip() + "\n")
     pki["cert"] = LiteralScalarString(host_cert_pem.strip() + "\n")
-    pki["key"] = LiteralScalarString(host_key_pem.strip() + "\n")
+    if host_key_path is not None:
+        pki["key"] = host_key_path
+    elif host_key_pem is not None:
+        pki["key"] = LiteralScalarString(host_key_pem.strip() + "\n")
 
-    if ca_cert_info is not None:
-        pki.yaml_set_comment_before_after_key("ca", before=_format_cert_info(info=ca_cert_info), indent=2)
+    if ca_cert_infos:
+        pki.yaml_set_comment_before_after_key(
+            "ca",
+            before="\n\n".join(_format_cert_info(info=info) for info in ca_cert_infos),
+            indent=2,
+        )
 
     if host_cert_info is not None:
         pki.yaml_set_comment_before_after_key("cert", before=_format_cert_info(info=host_cert_info), indent=2)
@@ -186,7 +195,8 @@ def render_host_config(
     *,
     ca_cert_pem: str,
     host_cert_pem: str,
-    host_key_pem: str,
+    host_key_pem: str | None = None,
+    host_key_path: str | None = None,
     lighthouses: list[LighthouseInfo],
     am_lighthouse: bool = False,
     tun_dev: str = "nebula1",
@@ -199,12 +209,22 @@ def render_host_config(
     ca_cert_info: dict[str, object] | None = None,
     host_cert_info: dict[str, object] | None = None,
     template_path: Path | None = None,
+    ca_cert_infos: list[dict[str, object]] | None = None,
 ) -> str:
     """Render a complete Nebula host configuration as YAML with comments.
 
     Loads a YAML template (user-provided or built-in), overrides dynamic values,
     and returns the result as a string with comments preserved.
+
+    Exactly one of *host_key_pem* (the key inlined) and *host_key_path* (a path to
+    the key on the host) is required. *ca_cert_pem* may hold several CA
+    certificates; *ca_cert_infos* then describes each, in place of *ca_cert_info*.
+
+    Raises ConfigRenderError if both or neither of the key arguments are given.
     """
+    if (host_key_pem is None) == (host_key_path is None):
+        raise ConfigRenderError(message="Give exactly one of host_key_pem and host_key_path.")
+
     yaml = YAML()
     yaml.preserve_quotes = True
     source = template_path if template_path is not None else BUILTIN_TEMPLATE
@@ -217,8 +237,9 @@ def render_host_config(
         ca_cert_pem=ca_cert_pem,
         host_cert_pem=host_cert_pem,
         host_key_pem=host_key_pem,
+        host_key_path=host_key_path,
         blocklist=blocklist or [],
-        ca_cert_info=ca_cert_info,
+        ca_cert_infos=ca_cert_infos if ca_cert_infos is not None else [ca_cert_info] if ca_cert_info else [],
         host_cert_info=host_cert_info,
     )
     _apply_static_host_map(cfg, lighthouses=lighthouses)

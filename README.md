@@ -128,6 +128,45 @@ Integrated certificate lifecycle:
 - Validity tracking and renewal hints
 - SOPS-encrypted key storage support
 
+By default `config generate` issues the CA and the host certificate when they are missing or close to expiry, and
+inlines the host's private key, taken from the PKI's key store, in the generated config.
+
+#### Host-held keys
+
+Set `key_path` and the generated config points at the host's own key file instead of carrying a key. Nothing is issued
+then: an administrator signs the host's public key with pki-kit (`pki-kit nebula issue --public-key ...`, renewed with
+`pki-kit nebula renew`), and `config generate` picks the newest valid certificate for the host's name, IP and groups.
+If none matches, generation fails and says why.
+
+```yaml
+hosts:
+  defaults:
+    key_path: ~/.config/nebula/{name}.key   # workstations: the owner's key
+  hosts:
+    lighthouse1:
+      nebula_ip: 10.10.0.1
+      public_endpoints: ["203.0.113.10"]
+      key_path: /etc/nebula/host.key        # servers: the system key
+```
+
+`key_path` can be set in `defaults` and overridden per host. `{name}` becomes the host name and `~` is expanded when the
+config is generated, so generate a workstation's config as the user who owns the key.
+
+#### Trusting several CAs
+
+`certs.trusted_ca_serials` lists the CAs every host trusts; `pki.ca` in each generated config carries all of them. To
+replace a CA without an outage, trust both, re-issue every host under the new one, then list the new CA alone: from then
+on every host refuses a certificate signed by the old CA. With `trusted_ca_serials` set, generation issues nothing and
+selects the host certificate among those signed by a listed CA, whether or not `key_path` is set.
+
+```yaml
+certs:
+  ca_name: "My Network CA"
+  trusted_ca_serials:
+    - 2144986930471558767855833189601131024   # old CA, until every host is re-issued
+    - 2170219665735143574701374454861984503   # new CA
+```
+
 ### CLI output formats
 
 ```bash

@@ -81,4 +81,5 @@ def main() -> None:
         from rich.console import Console
 
         Console(stderr=True).print(f"[red]Error:[/red] {exc}")
-        raise typer.Exit(code=1) from None
+        # Outside the app click no longer turns typer.Exit into an exit status.
+        raise SystemExit(1) from None

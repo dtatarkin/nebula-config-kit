@@ -27,7 +27,7 @@ from nebula_config_kit.models import (
     NebulaNetworkConfig,
     NetworkConfig,
 )
-from nebula_config_kit.orchestration import generate_host_config
+from nebula_config_kit.orchestration import generate_host_config, issue_host_certificate
 from nebula_config_kit.types import HostName
 
 if TYPE_CHECKING:
@@ -277,3 +277,53 @@ class TestLegacyMode:
         assert "PRIVATE KEY" in _parse_yaml(raw)["pki"]["key"]
         assert "public_key" not in raw
         assert len(pki.list_certificates()) == 2
+
+
+class TestIssueHostCertificate:
+    def test_signs_public_key_with_network_identity(self, tmp_path: Path) -> None:
+        pki = _make_pki()
+        old_ca = _issue_ca(pki=pki, name="Old CA")
+        new_ca = _issue_ca(pki=pki, name="New CA")
+        _, public_key = _keygen(directory=tmp_path, name="laptop")
+        config = _network(trusted_ca_serials=[old_ca, new_ca])
+
+        cert = issue_host_certificate(HostName("laptop"), config=config, pki=pki, public_key_pem=public_key)
+
+        assert cert.ca_serial_number == new_ca
+        assert cert.request.ip == "10.10.1.1/16"
+        assert cert.request.groups == ["developer"]
+        assert cert.request.public_key == public_key
+        # The config of that host now generates from it.
+        raw = generate_host_config(HostName("laptop"), config=config, pki=pki)
+        assert _parse_yaml(raw)["pki"]["cert"] == pki.export_certificate_pem(serial_number=cert.serial_number).decode()
+
+    def test_explicit_ca_must_be_trusted(self, tmp_path: Path) -> None:
+        pki = _make_pki()
+        trusted = _issue_ca(pki=pki, name="Trusted CA")
+        other = _issue_ca(pki=pki, name="Other CA")
+        _, public_key = _keygen(directory=tmp_path, name="laptop")
+
+        with pytest.raises(ConfigFileError, match="not a trusted CA"):
+            issue_host_certificate(
+                HostName("laptop"),
+                config=_network(trusted_ca_serials=[trusted]),
+                pki=pki,
+                public_key_pem=public_key,
+                ca_serial=other,
+            )
+
+    def test_explicit_trusted_ca_is_used(self, tmp_path: Path) -> None:
+        pki = _make_pki()
+        first = _issue_ca(pki=pki, name="First CA")
+        second = _issue_ca(pki=pki, name="Second CA")
+        _, public_key = _keygen(directory=tmp_path, name="laptop")
+
+        cert = issue_host_certificate(
+            HostName("laptop"),
+            config=_network(trusted_ca_serials=[first, second]),
+            pki=pki,
+            public_key_pem=public_key,
+            ca_serial=first,
+        )
+
+        assert cert.ca_serial_number == first

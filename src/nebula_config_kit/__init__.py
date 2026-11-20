@@ -32,7 +32,7 @@ from nebula_config_kit.models import (
     SecurityGroup,
 )
 from nebula_config_kit.network import get_prefix_length, make_sign_ip
-from nebula_config_kit.orchestration import ResolvedHost, generate_host_config, resolve_host
+from nebula_config_kit.orchestration import ResolvedHost, generate_host_config, issue_host_certificate, resolve_host
 from nebula_config_kit.types import Direction, FirewallRule, HostName, Protocol
 
 __all__ = [
@@ -63,6 +63,7 @@ __all__ = [
     "extract_lighthouses",
     "generate_host_config",
     "get_prefix_length",
+    "issue_host_certificate",
     "load_config",
     "make_sign_ip",
     "render_host_config",

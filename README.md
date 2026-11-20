@@ -134,9 +134,20 @@ inlines the host's private key, taken from the PKI's key store, in the generated
 #### Host-held keys
 
 Set `key_path` and the generated config points at the host's own key file instead of carrying a key. Nothing is issued
-then: an administrator signs the host's public key with pki-kit (`pki-kit nebula issue --public-key ...`, renewed with
-`pki-kit nebula renew`), and `config generate` picks the newest valid certificate for the host's name, IP and groups.
-If none matches, generation fails and says why.
+then: an administrator signs the host's public key, and `config generate` picks the newest valid certificate for the
+host's name, IP and groups. If none matches, generation fails and says why.
+
+```bash
+# on the host: the private key stays there
+nebula-cert keygen -out-key host.key -out-pub host.pub
+
+# at the PKI: sign with the IP, groups and duration the network config gives the host
+nebula-config certs issue laptop --public-key host.pub --ca-key <ca-key-file>
+```
+
+`certs issue` signs with the last CA in `certs.trusted_ca_serials` (or `--ca-serial`), and reads the CA key from
+`--ca-key` or `PKI_NEBULA_CA_KEY`, so the key need not be in the PKI's key store. A public key already signed for another
+host is refused. pki-kit renews a certificate for the same key: `pki-kit nebula renew <serial>`.
 
 ```yaml
 hosts:

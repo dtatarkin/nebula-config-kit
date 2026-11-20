@@ -303,3 +303,56 @@ def _render_from_stored_certificates(
         host_cert_info=_cert_info(cert=host_cert),
         template_path=template_path,
     )
+
+
+def issue_host_certificate(
+    name: HostName,
+    *,
+    config: NebulaNetworkConfig,
+    pki: NebulaPki,
+    public_key_pem: str,
+    ca_serial: int | None = None,
+) -> CertificateInfo[NebulaCertificateRequest, NebulaCertData]:
+    """Sign a host's own public key with the name, IP, groups and duration the network config gives it.
+
+    The signing CA is *ca_serial*, or else the last of ``certs.trusted_ca_serials``,
+    or else the current CA named ``certs.ca_name``; it must be one of the trusted CAs
+    when ``certs.trusted_ca_serials`` is set. No private key is generated or stored.
+
+    Raises ConfigFileError if required config sections are missing or the CA is not usable.
+    Raises HostNotFoundError if the host is not in the configuration.
+    Raises pki.exceptions.PkiError if signing fails, including when the public key is
+    already signed for another host.
+    """
+    from datetime import UTC, datetime
+
+    from pki.backends.nebula.pki import NebulaCertificateRequest, NebulaPublicKey
+    from pki.models import Subject
+    from pki.types import PEMString
+
+    if config.network is None:
+        raise ConfigFileError(message="Required configuration section 'network' is missing.")
+    if config.certs is None:
+        raise ConfigFileError(message="Required configuration section 'certs' is missing.")
+
+    resolved = resolve_host(name, config=config)
+    cas = _trusted_cas(pki=pki, certs=config.certs, now=datetime.now(tz=UTC))
+    if ca_serial is None:
+        ca = cas[-1]
+    else:
+        matching = [candidate for candidate in cas if int(candidate.serial_number) == ca_serial]
+        if not matching:
+            raise ConfigFileError(message=f"CA {ca_serial} is not a trusted CA of this network.")
+        ca = matching[0]
+
+    public_key = NebulaPublicKey.from_pem(pem=public_key_pem)
+    request = NebulaCertificateRequest(
+        subject=Subject(common_name=name),
+        is_ca=False,
+        duration=config.certs.host_duration,
+        ip=make_sign_ip(resolved.host.nebula_ip, cidr=config.network.cidr),
+        groups=config.firewall.host_groups.get(name, []) if config.firewall else [],
+        key_algorithm=public_key.key_algorithm,
+        public_key=PEMString(public_key_pem),
+    )
+    return pki.issue_certificate(request, ca_serial_number=ca.serial_number)

@@ -64,9 +64,11 @@ def main_callback(
 
 
 # Register subcommand groups (import after app is defined to avoid circular imports)
+from nebula_config_kit.cli._certs import certs_app  # noqa: E402
 from nebula_config_kit.cli._config import config_app  # noqa: E402
 from nebula_config_kit.cli._hosts import hosts_app  # noqa: E402
 
+app.add_typer(certs_app)
 app.add_typer(config_app)
 app.add_typer(hosts_app)
 
